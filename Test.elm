@@ -10,6 +10,13 @@ tests =
         [
           test "No living cells have no living cells in the next tick"
                (assertEqual (update Game.Tick initModel) (initModel))
+        , test "One living cell with no neighbours die in next tick"
+               (
+                let
+                  oneLivingCellModel = [[Game.Alive]]
+                in
+                  (assertEqual (update Game.Tick oneLivingCellModel) (initModel))
+               )
         ]
 
 

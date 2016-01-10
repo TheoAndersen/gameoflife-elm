@@ -10188,10 +10188,16 @@ Elm.Game.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var update = F2(function (action,model) {    return model;});
-   var initModel = 12;
+   var initModel = _U.list([_U.list([])]);
+   var update = F2(function (action,model) {
+      return initModel;
+   });
    var Tick = {ctor: "Tick"};
+   var Empty = {ctor: "Empty"};
+   var Alive = {ctor: "Alive"};
    return _elm.Game.values = {_op: _op
+                             ,Alive: Alive
+                             ,Empty: Empty
                              ,Tick: Tick
                              ,initModel: initModel
                              ,update: update};
@@ -10215,10 +10221,18 @@ Elm.Main.make = function (_elm) {
    var tests = A2($ElmTest.suite,
    "beginning",
    _U.list([A2($ElmTest.test,
-   "No living cells have no living cells in the next tick",
-   A2($ElmTest.assertEqual,
-   A2($Game.update,$Game.Tick,$Game.initModel),
-   $Game.initModel))]));
+           "No living cells have no living cells in the next tick",
+           A2($ElmTest.assertEqual,
+           A2($Game.update,$Game.Tick,$Game.initModel),
+           $Game.initModel))
+           ,A2($ElmTest.test,
+           "One living cell with no neighbours die in next tick",
+           function () {
+              var oneLivingCellModel = _U.list([_U.list([$Game.Alive])]);
+              return A2($ElmTest.assertEqual,
+              A2($Game.update,$Game.Tick,oneLivingCellModel),
+              $Game.initModel);
+           }())]));
    var main = $ElmTest.elementRunner(tests);
    return _elm.Main.values = {_op: _op,tests: tests,main: main};
 };
