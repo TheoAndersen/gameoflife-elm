@@ -7,10 +7,10 @@ type alias Model = World
 type Action = Tick
             
 
-initModel : Model
-initModel =
-  [[]]
-
+initModel : Int -> Model
+initModel size =
+  List.repeat 3 (List.concat (List.repeat size [Empty]))
+  
 update : Action -> Model -> Model
 update action model =
-  initModel
+  model
