@@ -13,4 +13,10 @@ initModel size =
   
 update : Action -> Model -> Model
 update action model =
-  model
+  let
+    emptyIfAlive _ value =
+      Empty
+    emptyAllAlives list =
+      List.indexedMap emptyIfAlive list
+  in
+    List.map emptyAllAlives model

@@ -10188,7 +10188,6 @@ Elm.Game.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var update = F2(function (action,model) {    return model;});
    var Tick = {ctor: "Tick"};
    var Empty = {ctor: "Empty"};
    var initModel = function (size) {
@@ -10196,6 +10195,15 @@ Elm.Game.make = function (_elm) {
       3,
       $List.concat(A2($List.repeat,size,_U.list([Empty]))));
    };
+   var update = F2(function (action,model) {
+      var emptyIfAlive = F2(function (_p0,value) {
+         return Empty;
+      });
+      var emptyAllAlives = function (list) {
+         return A2($List.indexedMap,emptyIfAlive,list);
+      };
+      return A2($List.map,emptyAllAlives,model);
+   });
    var Alive = {ctor: "Alive"};
    return _elm.Game.values = {_op: _op
                              ,Alive: Alive
@@ -10220,20 +10228,27 @@ Elm.Main.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var emptyWorld = function (size) {
+      return $Game.initModel(size);
+   };
    var tests = A2($ElmTest.suite,
    "beginning",
    _U.list([A2($ElmTest.test,
            "No living cells have no living cells in the next tick",
            A2($ElmTest.assertEqual,
-           A2($Game.update,$Game.Tick,$Game.initModel(2)),
-           $Game.initModel(2)))
+           A2($Game.update,$Game.Tick,emptyWorld(2)),
+           emptyWorld(2)))
            ,A2($ElmTest.test,
            "One living cell with no neighbours die in next tick",
            function () {
-              var oneLivingCellModel = $Game.initModel(2);
+              var oneLivingCellModel = _U.list([_U.list([$Game.Empty
+                                                        ,$Game.Empty
+                                                        ,$Game.Empty])
+                                               ,_U.list([$Game.Empty,$Game.Alive,$Game.Empty])
+                                               ,_U.list([$Game.Empty,$Game.Empty,$Game.Empty])]);
               return A2($ElmTest.assertEqual,
               A2($Game.update,$Game.Tick,oneLivingCellModel),
-              $Game.initModel(2));
+              emptyWorld(3));
            }())
            ,A2($ElmTest.test,
            "initModel can init a 3x3 celled world",
@@ -10243,10 +10258,11 @@ Elm.Main.make = function (_elm) {
                                                    ,$Game.Empty])
                                           ,_U.list([$Game.Empty,$Game.Empty,$Game.Empty])
                                           ,_U.list([$Game.Empty,$Game.Empty,$Game.Empty])]);
-              return A2($ElmTest.assertEqual,
-              $Game.initModel(3),
-              expectedWorld);
+              return A2($ElmTest.assertEqual,emptyWorld(3),expectedWorld);
            }())]));
    var main = $ElmTest.elementRunner(tests);
-   return _elm.Main.values = {_op: _op,tests: tests,main: main};
+   return _elm.Main.values = {_op: _op
+                             ,emptyWorld: emptyWorld
+                             ,tests: tests
+                             ,main: main};
 };

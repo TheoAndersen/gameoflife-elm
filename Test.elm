@@ -4,19 +4,26 @@ import Graphics.Element exposing (Element)
 import ElmTest exposing (..)
 import Game exposing (Model, initModel, update, Action)
 
+emptyWorld : Int -> Game.Model
+emptyWorld size = initModel size
+
 tests : Test
 tests =
   suite "beginning"
         [
           test "No living cells have no living cells in the next tick"
-               (assertEqual (update Game.Tick (initModel 2)) (initModel 2))
+               (assertEqual (update Game.Tick (emptyWorld 2)) (emptyWorld 2))
+               
         , test "One living cell with no neighbours die in next tick"
                (
                 let
-                  oneLivingCellModel = initModel 2
+                  oneLivingCellModel = [[Game.Empty, Game.Empty, Game.Empty]
+                                       ,[Game.Empty, Game.Alive, Game.Empty]
+                                       ,[Game.Empty, Game.Empty, Game.Empty]]
                 in
-                  (assertEqual (update Game.Tick oneLivingCellModel) (initModel 2))
+                  (assertEqual (update Game.Tick oneLivingCellModel) (emptyWorld 3))
                )
+          
         , test "initModel can init a 3x3 celled world"
                (
                 let
@@ -24,8 +31,9 @@ tests =
                                   ,[Game.Empty, Game.Empty, Game.Empty]
                                   ,[Game.Empty, Game.Empty, Game.Empty]]
                 in
-                  (assertEqual (initModel 3) expectedWorld)
+                  (assertEqual (emptyWorld 3) expectedWorld)
                )
+
         ]
 
 
