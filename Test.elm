@@ -45,6 +45,34 @@ tests =
                 in
                   (assertEqual (update Game.Tick before) after)
                )
+        , test "One living cell with three neighbours live in next tick"
+               (
+                let
+                  before = [[Game.Alive, Game.Empty, Game.Alive]
+                           ,[Game.Empty, Game.Alive, Game.Empty]
+                           ,[Game.Empty, Game.Alive, Game.Empty]]
+                  after = [[Game.Empty, Game.Empty, Game.Empty]
+                          ,[Game.Empty, Game.Alive, Game.Empty]
+                          ,[Game.Empty, Game.Empty, Game.Empty]]
+
+                in
+                  (assertEqual (update Game.Tick before) after)
+               )
+          , test "A living cell with four neighbours die, as by overpopulation"
+               (
+                let
+                  before = [[Game.Alive, Game.Empty, Game.Alive]
+                           ,[Game.Empty, Game.Alive, Game.Empty]
+                           ,[Game.Alive, Game.Empty, Game.Alive]]
+                  after = [[Game.Empty, Game.Empty, Game.Empty]
+                          ,[Game.Empty, Game.Empty, Game.Empty]
+                          ,[Game.Empty, Game.Empty, Game.Empty]]
+
+                in
+                  (assertEqual (update Game.Tick before) after)
+               )
+
+
 
           
         , test "initModel can init a 3x3 celled world"
