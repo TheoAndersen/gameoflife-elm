@@ -43,9 +43,11 @@ update : Action -> Model -> Model
 update action model =
   let
     cellAfterNextTick model colIndex rowIndex state =
-      if state == Alive &&
+      if (state == Alive &&
          (numberOfNeigbours model colIndex rowIndex) > 1 &&
-         (numberOfNeigbours model colIndex rowIndex) < 4 then
+         (numberOfNeigbours model colIndex rowIndex) < 4) ||
+         (state == Empty &&
+         (numberOfNeigbours model colIndex rowIndex) == 3) then
         Alive
       else
         Empty

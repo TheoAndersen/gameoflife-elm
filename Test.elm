@@ -35,11 +35,12 @@ tests =
         , test "One living cell with two neighbours live in next tick"
                (
                 let
-                  before = [[Game.Empty, Game.Empty, Game.Alive]
+                  before = [[Game.Empty, Game.Alive, Game.Empty]
                            ,[Game.Empty, Game.Alive, Game.Empty]
                            ,[Game.Empty, Game.Alive, Game.Empty]]
+                  
                   after = [[Game.Empty, Game.Empty, Game.Empty]
-                          ,[Game.Empty, Game.Alive, Game.Empty]
+                          ,[Game.Alive, Game.Alive, Game.Alive]  -- two outer live on because of rule 3
                           ,[Game.Empty, Game.Empty, Game.Empty]]
 
                 in
@@ -51,8 +52,8 @@ tests =
                   before = [[Game.Alive, Game.Empty, Game.Alive]
                            ,[Game.Empty, Game.Alive, Game.Empty]
                            ,[Game.Empty, Game.Alive, Game.Empty]]
-                  after = [[Game.Empty, Game.Empty, Game.Empty]
-                          ,[Game.Empty, Game.Alive, Game.Empty]
+                  after = [[Game.Empty, Game.Alive, Game.Empty]
+                          ,[Game.Alive, Game.Alive, Game.Alive]
                           ,[Game.Empty, Game.Empty, Game.Empty]]
 
                 in
@@ -64,13 +65,29 @@ tests =
                   before = [[Game.Alive, Game.Empty, Game.Alive]
                            ,[Game.Empty, Game.Alive, Game.Empty]
                            ,[Game.Alive, Game.Empty, Game.Alive]]
+                  after = [[Game.Empty, Game.Alive, Game.Empty]
+                          ,[Game.Alive, Game.Empty, Game.Alive]
+                          ,[Game.Empty, Game.Alive, Game.Empty]]
+
+                in
+                  (assertEqual (update Game.Tick before) after)
+               )
+
+        , test "A dead cell with exactly three live neighbours becomes a live cell, as by reproduction"
+               (
+                let
+                  before = [[Game.Alive, Game.Empty, Game.Empty]
+                           ,[Game.Empty, Game.Alive, Game.Empty]
+                           ,[Game.Alive, Game.Empty, Game.Empty]]
+                  
                   after = [[Game.Empty, Game.Empty, Game.Empty]
-                          ,[Game.Empty, Game.Empty, Game.Empty]
+                          ,[Game.Alive, Game.Alive, Game.Empty]
                           ,[Game.Empty, Game.Empty, Game.Empty]]
 
                 in
                   (assertEqual (update Game.Tick before) after)
                )
+
 
 
 
@@ -87,7 +104,7 @@ tests =
          , test "numberOfNeigbours with 1 neigbour"
                 (
                  let
-                   world = [[Game.Empty, Game.Alive, Game.Empty]
+                   world = [[Game.Empty, Game.Empty, Game.Alive]
                            ,[Game.Empty, Game.Empty, Game.Empty]
                            ,[Game.Empty, Game.Empty, Game.Empty]]
                  in
@@ -105,8 +122,8 @@ tests =
          , test "numberOfNeigbours with 5 neigbours"
                 (
                  let
-                   world = [[Game.Alive, Game.Alive, Game.Empty]
-                           ,[Game.Empty, Game.Empty, Game.Alive]
+                   world = [[Game.Alive, Game.Alive, Game.Alive]
+                           ,[Game.Empty, Game.Empty, Game.Empty]
                            ,[Game.Alive, Game.Empty, Game.Alive]]
                  in
                    (assertEqual (numberOfNeigbours world 1 1) 5)
