@@ -6,7 +6,6 @@ type alias Model = World
 
 type Action = Tick
             
-
 initModel : Int -> Model
 initModel size =
   List.repeat 3 (List.concat (List.repeat size [Empty]))
@@ -43,14 +42,17 @@ update : Action -> Model -> Model
 update action model =
   let
     cellAfterNextTick model colIndex rowIndex state =
-      if (state == Alive &&
-         (numberOfNeigbours model colIndex rowIndex) > 1 &&
-         (numberOfNeigbours model colIndex rowIndex) < 4) ||
-         (state == Empty &&
-         (numberOfNeigbours model colIndex rowIndex) == 3) then
-        Alive
-      else
-        Empty
+      let
+        neigbours = (numberOfNeigbours model colIndex rowIndex)
+      in
+        if (state == Alive &&
+           neigbours > 1 &&
+           neigbours < 4) ||
+           (state == Empty &&
+           neigbours == 3) then
+          Alive
+        else
+          Empty
       
     handleSubList model colIndex sublist =
       List.indexedMap (\rowIndex value ->
