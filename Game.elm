@@ -20,7 +20,7 @@ initModel size =
   |> List.repeat 3
 
 
-indexMap2Location : (Location -> a -> b) -> List (List a) -> List b
+indexMap2Location : (Location -> a -> b) -> List (List a) -> List (List b)
 indexMap2Location func list2 =
   list2
   |> List.indexedMap (\row subList ->
@@ -29,7 +29,6 @@ indexMap2Location func list2 =
                                               func {row = row, col = col} cell
                                            )
                   )
-  |> List.concat
 
 numberOfNeigbours : World -> Location -> Int
 numberOfNeigbours world location = 
@@ -46,30 +45,24 @@ numberOfNeigbours world location =
         0
   in
       world
-        |> indexMap2Location (isNeigbour location)
-        |> List.sum
+      |> indexMap2Location (isNeigbour location)
+      |> List.concat
+      |> List.sum
   
 update : Action -> Model -> Model
 update action model =
   let
-    cellAfterNextTick model location state =
-      let
-        neigbours = (numberOfNeigbours model location)
-      in
-        if (state == Alive && neigbours > 1 && neigbours < 4) ||
-           (state == Empty && neigbours == 3) then
-          Alive
-        else
-          Empty
-      
-    handleSubList model rowIndex sublist =
-      sublist
-      |> List.indexedMap (\colIndex value ->
-                            cellAfterNextTick model { col = colIndex, row = rowIndex} value
-                         )
+    cellAfterNextTick model neigbours state =
+      if (state == Alive && neigbours > 1 && neigbours < 4) ||
+         (state == Empty && neigbours == 3) then
+        Alive
+      else
+        Empty
   in
-    model
-    |> List.indexedMap (model |> handleSubList)
+  model
+  |> indexMap2Location (\loc cell ->
+                          cellAfterNextTick model (numberOfNeigbours model loc) cell
+                       )
 
 view : Model -> Html
 view model =

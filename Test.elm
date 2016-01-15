@@ -176,9 +176,9 @@ tests =
                    before = [["a", "b", "c"]
                             ,["d", "e", "f"]
                             ,["g", "h", "i"]]
-                   after = [(elem 0 0 "a"), (elem 0 1 "b"), (elem 0 2 "c")
-                           ,(elem 1 0 "d"), (elem 1 1 "e"), (elem 1 2 "f")
-                           ,(elem 2 0 "g"), (elem 2 1 "h"), (elem 2 2 "i")]
+                   after = [[(elem 0 0 "a"), (elem 0 1 "b"), (elem 0 2 "c")]
+                           ,[(elem 1 0 "d"), (elem 1 1 "e"), (elem 1 2 "f")]
+                           ,[(elem 2 0 "g"), (elem 2 1 "h"), (elem 2 2 "i")]]
                  in
                    (assertEqual after (indexMap2Location (\loc val -> (loc, val)) before))
                 )
