@@ -1,6 +1,8 @@
 module Game where
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
+import Time
 
 type Cell = Alive | Empty
 type alias World = List (List Cell)
@@ -17,7 +19,7 @@ initModel size =
   [Empty]
   |> List.repeat size
   |> List.concat
-  |> List.repeat 3
+  |> List.repeat size
 
 
 indexMap2Location : (Location -> a -> b) -> List (List a) -> List (List b)
@@ -63,10 +65,59 @@ update action model =
   |> indexMap2Location (\loc cell ->
                           cellAfterNextTick model (numberOfNeigbours model loc) cell
                        )
-
+drawCell : Cell -> Html
+drawCell cell =
+  let
+    cellFillColor =
+      if cell == Alive
+         then "black"
+         else "white"
+  in      
+    div
+    [
+     style [("border", "1px solid black")
+           ,("width", "6px")
+           ,("height","6px")
+           ,("background-color", cellFillColor)
+           ,("display", "block")
+           ,("float", "left")
+           ]
+    ]
+  [text "  "]
+  
 view : Model -> Html
 view model =
-  div[][]
+  div
+  []
+  (model
+   |> indexMap2Location(\_ cell -> drawCell cell)
+   |> List.intersperse ([div[style [("clear", "both")]][]])
+   |> List.concat)
+
+ticker : Signal Action
+ticker =
+  Signal.map (always Tick) (Time.fps 50)
+
+input : Signal Action
+input =
+  Signal.mergeMany [ticker]
+  
+model : Signal Model
+model =
+  Signal.foldp update (initialModel) ticker
+
+initialModel : Model
+initialModel =
+  (initModel 100)
+  |> indexMap2Location (\loc cell ->
+      if(loc.row > 24 && loc.row < 30) &&
+        (loc.col > 24 && loc.col < 30)
+      then Alive
+      else Empty
+    )
+  
+main : Signal Html
+main = Signal.map view model
 
 
 
