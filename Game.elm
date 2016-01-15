@@ -1,65 +1,79 @@
 module Game where
 
+import Html exposing (..)
+
 type Cell = Alive | Empty
 type alias World = List (List Cell)
 type alias Model = World
+
+type alias Location = { row : Int
+                      , col : Int
+                      }
 
 type Action = Tick
             
 initModel : Int -> Model
 initModel size =
-  List.repeat 3 (List.concat (List.repeat size [Empty]))
+  [Empty]
+  |> List.repeat size
+  |> List.concat
+  |> List.repeat 3
 
-numberOfNeigbours : Model -> Int -> Int -> Int
-numberOfNeigbours model colIndex rowIndex = 
+
+indexMap2Location : (Location -> a -> b) -> List (List a) -> List b
+indexMap2Location func list2 =
+  list2
+  |> List.indexedMap (\row subList ->
+                        subList
+                        |> List.indexedMap (\col cell ->
+                                              func {row = row, col = col} cell
+                                           )
+                  )
+  |> List.concat
+
+numberOfNeigbours : World -> Location -> Int
+numberOfNeigbours world location = 
   let
-    locationIsNotOwnLocation ownCol ownRow otherCol otherRow =
-      if (ownCol == otherCol) &&
-         (ownRow == otherRow) then
-        False
+    isNeigbour ownLocation cellLocation cell =
+      if (cellLocation.col >= ownLocation.col - 1) &&
+         (cellLocation.col <= ownLocation.col + 1) &&
+         (cellLocation.row >= ownLocation.row - 1) &&
+         (cellLocation.row <= ownLocation.row + 1) &&
+         (cell == Alive) &&
+         (ownLocation /= cellLocation) then
+        1
       else
-        True
-    
-    neigbours model colIndex rowIndex =
-      List.indexedMap (\cIndex cList ->
-                         List.indexedMap
-                               (\rIndex value ->
-                                  if (cIndex >= colIndex - 1) &&
-                                     (cIndex <= colIndex + 1) &&
-                                     (rIndex >= rowIndex - 1) &&
-                                     (rIndex <= rowIndex + 1) &&
-                                     (value == Alive) &&
-                                     (locationIsNotOwnLocation cIndex rIndex colIndex rowIndex) then
-                                    1
-                                  else
-                                    0
-                               ) cList
-                      ) model
+        0
   in
-    List.sum (List.concat (neigbours model colIndex rowIndex))
+      world
+        |> indexMap2Location (isNeigbour location)
+        |> List.sum
   
 update : Action -> Model -> Model
 update action model =
   let
-    cellAfterNextTick model colIndex rowIndex state =
+    cellAfterNextTick model location state =
       let
-        neigbours = (numberOfNeigbours model colIndex rowIndex)
+        neigbours = (numberOfNeigbours model location)
       in
-        if (state == Alive &&
-           neigbours > 1 &&
-           neigbours < 4) ||
-           (state == Empty &&
-           neigbours == 3) then
+        if (state == Alive && neigbours > 1 && neigbours < 4) ||
+           (state == Empty && neigbours == 3) then
           Alive
         else
           Empty
       
-    handleSubList model colIndex sublist =
-      List.indexedMap (\rowIndex value ->
-                         cellAfterNextTick model colIndex rowIndex value
-                      ) sublist
+    handleSubList model rowIndex sublist =
+      sublist
+      |> List.indexedMap (\colIndex value ->
+                            cellAfterNextTick model { col = colIndex, row = rowIndex} value
+                         )
   in
-    List.indexedMap (handleSubList model) model
+    model
+    |> List.indexedMap (model |> handleSubList)
+
+view : Model -> Html
+view model =
+  div[][]
 
 
 
