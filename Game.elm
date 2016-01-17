@@ -96,7 +96,7 @@ view model =
 
 ticker : Signal Action
 ticker =
-  Signal.map (always Tick) (Time.fps 50)
+  Signal.map (always Tick) (Time.fps 10)
 
 input : Signal Action
 input =
