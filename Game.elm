@@ -2,8 +2,10 @@ module Game where
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Time
 import List.Extra exposing (group)
+import Signal exposing (Address)
 
 type Cell = Alive | Empty
 type alias Location = { row : Int
@@ -14,7 +16,7 @@ type alias Model = { alive: AliveCells
                    }
 type alias AliveCells = List Location
                  
-type Action = Tick | Press Location
+type Action = NoOp | Tick | Press Location
             
 initModel : Int -> Model
 initModel size = {alive = []
@@ -50,9 +52,9 @@ numberOfNeigbours alive location =
   |> List.map (\_ -> 1)
   |> List.sum
 
-update : Action -> Model -> Model
-update action model =
-  let
+tick : Model -> Model
+tick model =
+    let
     aliv =
       List.filter (\loc ->
                      (numberOfNeigbours model.alive loc) == 2 ||
@@ -78,9 +80,18 @@ update action model =
       |> removeDuplicates
   in
     {alive = total, size=model.size}
+ 
+update : Action -> Model -> Model
+update action model =
+  case action of
+    NoOp -> model
+    Tick -> (tick model)
+    Press location ->
+      { model | alive = model.alive ++ [location] }
 
-drawCell : Cell -> Html
-drawCell cell =
+
+drawCell : Address Action -> Location -> Cell -> Html
+drawCell address location cell =
   let
     cellFillColor =
       if cell == Alive
@@ -96,11 +107,12 @@ drawCell cell =
            ,("display", "block")
            ,("float", "left")
            ]
+     ,onClick address (Press location)
     ]
   [text "  "]
   
-view : Model -> Html
-view model =
+view : Address Action -> Model -> Html
+view address model =
   div
   []
   (
@@ -110,9 +122,9 @@ view model =
                    [0..model.size]
                      |> List.map (\col ->
                                     if (List.member (Location row col) model.alive) then
-                                      (drawCell Alive)
+                                      (drawCell address (Location row col) Alive)
                                     else
-                                      (drawCell Empty)
+                                      (drawCell address (Location row col) Empty)
                                  )
                   
                )
@@ -122,15 +134,15 @@ view model =
 
 ticker : Signal Action
 ticker =
-  Signal.map (always Tick) (Time.fps 4)
+  Signal.map (always Tick) (Time.fps 2)
 
 input : Signal Action
 input =
-  Signal.mergeMany [ticker]
+  Signal.mergeMany [ticker, inbox.signal]
   
 model : Signal Model
 model =
-  Signal.foldp update initialModel ticker
+  Signal.foldp update initialModel input
 
 initialModel : Model
 initialModel = {alive= [(Location 10 10)
@@ -147,9 +159,13 @@ initialModel = {alive= [(Location 10 10)
                        ,(Location 31 30)
                        ,(Location 30 29)
                        ,(Location 30 31)], size = 70}
-  
+
+inbox : Signal.Mailbox Action
+inbox =
+  Signal.mailbox NoOp
+
 main : Signal Html
-main = Signal.map view model
+main = Signal.map (view inbox.address) model
 
 
 
