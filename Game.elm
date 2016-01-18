@@ -14,7 +14,7 @@ type alias Model = { alive: AliveCells
                    }
 type alias AliveCells = List Location
                  
-type Action = Tick
+type Action = Tick | Press Location
             
 initModel : Int -> Model
 initModel size = {alive = []
@@ -114,16 +114,25 @@ view model =
   div
   []
   (
-   (drawCell Empty)
-   |> List.repeat model.size
-   |> List.repeat model.size
+   [0..model.size]
+   |> List.map (\row ->
+                  
+                   [0..model.size]
+                     |> List.map (\col ->
+                                    if (List.member (Location row col) model.alive) then
+                                      (drawCell Alive)
+                                    else
+                                      (drawCell Empty)
+                                 )
+                  
+               )
    |> List.intersperse ([div[style [("clear", "both")]][]])      
    |> List.concat
   )
 
 ticker : Signal Action
 ticker =
-  Signal.map (always Tick) (Time.fps 10)
+  Signal.map (always Tick) (Time.fps 60)
 
 input : Signal Action
 input =
@@ -134,7 +143,7 @@ model =
   Signal.foldp update initialModel ticker
 
 initialModel : Model
-initialModel = {alive= [], size = 100}
+initialModel = {alive= [(Location 10 10), (Location 11 11), (Location 10 11)], size = 70}
   
 main : Signal Html
 main = Signal.map view model
