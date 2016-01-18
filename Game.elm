@@ -31,14 +31,14 @@ indexMap2Location func list2 =
                                            )
                   )
 
--- groupByOccurenceOfExactly : Int -> List comparable -> List comparable
--- groupByOccurenceOfExactly minSize list =
---   list
--- --  |> List.sort
---   |> group
---   |> List.filter (\value -> ((List.length value) == minSize))
---   |> List.map (\val -> (List.take 1 val))
---   |> List.concat
+groupByOccurenceOfExactly : Int -> List comparable -> List comparable
+groupByOccurenceOfExactly minSize list =
+  list
+  |> List.sort
+  |> group
+  |> List.filter (\value -> ((List.length value) == minSize))
+  |> List.map (\val -> (List.take 1 val))
+  |> List.concat
 
 numberOfNeigbours : AliveCells -> Location -> Int
 numberOfNeigbours alive location = 

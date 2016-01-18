@@ -189,10 +189,10 @@ tests =
                  in
                    (assertEqual after (indexMap2Location (\loc val -> (loc, val)) before))
                 )
-         -- , test "groupByOccurenceOfExactly"
-         --        (
-         --         (assertEqual [2] (groupByOccurenceOfExactly 3 [1, 2, 3, 2, 3, 2]))
-         --        )
+         , test "groupByOccurenceOfExactly"
+                (
+                 (assertEqual [2] (groupByOccurenceOfExactly 3 [1, 2, 3, 2, 3, 2]))
+                )
                   
 
         ]
