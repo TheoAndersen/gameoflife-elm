@@ -5,7 +5,8 @@ import Graphics.Element exposing (Element)
 import ElmTest exposing (..)
 import Game exposing (Model, initModel, update, Action
                      , numberOfNeigbours, view, Location
-                     , indexMap2Location)
+                     , indexMap2Location
+                     , groupByOccurenceOfExactly)
 
 emptyWorld : Int -> Game.Model
 emptyWorld size = initModel size
@@ -24,75 +25,84 @@ tests =
         , test "One living cell with no neighbours die in next tick"
                (
                 let
-                  oneLivingCellModel = [[Game.Empty, Game.Empty, Game.Empty]
-                                       ,[Game.Empty, Game.Alive, Game.Empty]
-                                       ,[Game.Empty, Game.Empty, Game.Empty]]
+                  oneLivingCellModel = [(Location 1 1)]
                 in
-                  (assertEqual (update Game.Tick oneLivingCellModel) (emptyWorld 3))
+                  (assertEqual (update Game.Tick (Model oneLivingCellModel 3)) (Model [] 3))
                )
         , test "One living cell with one neighbour die in next tick"
                (
                 let
-                  oneLivingCellModel = [[Game.Empty, Game.Alive, Game.Empty]
-                                       ,[Game.Empty, Game.Alive, Game.Empty]
-                                       ,[Game.Empty, Game.Empty, Game.Empty]]
+                  oneLivingCellModel = [(Location 0 1)
+                                       ,(Location 1 1)
+                                       ]
+
                 in
-                  (assertEqual (update Game.Tick oneLivingCellModel) (emptyWorld 3))
+                  (assertEqual (update Game.Tick (Model oneLivingCellModel 3)) (Model [] 3))
                )
         , test "One living cell with two neighbours live in next tick"
                (
                 let
-                  before = [[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Empty, Game.Alive, Game.Empty]]
-                  
-                  after = [[Game.Empty, Game.Empty, Game.Empty]
-                          ,[Game.Alive, Game.Alive, Game.Alive]  -- two outer live on because of rule 3
-                          ,[Game.Empty, Game.Empty, Game.Empty]]
+                  before = [(Location 0 1)  -- -x-
+                           ,(Location 1 1)  -- -x-
+                           ,(Location 2 1)  -- --x
+                           ]
 
+                  after = [(Location 1 1)   -- ---
+                                            -- -1-
+                                            -- ---
+                          ]
                 in
-                  (assertEqual (update Game.Tick before) after)
+                  (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
                )
         , test "One living cell with three neighbours live in next tick"
                (
                 let
-                  before = [[Game.Alive, Game.Empty, Game.Alive]
-                           ,[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Empty, Game.Alive, Game.Empty]]
-                  after = [[Game.Empty, Game.Alive, Game.Empty]
-                          ,[Game.Alive, Game.Alive, Game.Alive]
-                          ,[Game.Empty, Game.Empty, Game.Empty]]
+                  before = [(Location 0 0)
+                           ,(Location 0 2)  -- x-x
+                           ,(Location 1 1)  -- -x-
+                           ,(Location 2 1)  -- -x-
+                           ]
 
+                  after = [--(Location 0 1)
+--                          ,(Location 1 0)   -- ---
+                             (Location 1 1)   -- -x-
+  --                        ,(Location 1 2)   -- ---
+                          ]
                 in
-                  (assertEqual (update Game.Tick before) after)
+                  (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
                )
           , test "A living cell with four neighbours die, as by overpopulation"
                (
                 let
-                  before = [[Game.Alive, Game.Empty, Game.Alive]
-                           ,[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Alive, Game.Empty, Game.Alive]]
-                  after = [[Game.Empty, Game.Alive, Game.Empty]
-                          ,[Game.Alive, Game.Empty, Game.Alive]
-                          ,[Game.Empty, Game.Alive, Game.Empty]]
-
+                  before = [(Location 0 0)
+                           ,(Location 0 2)
+                           ,(Location 1 1)
+                           ,(Location 2 0)
+                           ,(Location 2 2)
+                           ]
+                  after = [(Location 0 1)
+                          ,(Location 1 0)
+                          ,(Location 1 2)
+                          ,(Location 2 1)
+                          ]
                 in
-                  (assertEqual (update Game.Tick before) after)
+                  (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
                )
 
         , test "A dead cell with exactly three live neighbours becomes a live cell, as by reproduction"
                (
                 let
-                  before = [[Game.Alive, Game.Empty, Game.Empty]
-                           ,[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Alive, Game.Empty, Game.Empty]]
+                  before = [(Location 0 0)
+                           ,(Location 1 1)
+                           ,(Location 2 0)
+                           ]
                   
-                  after = [[Game.Empty, Game.Empty, Game.Empty]
-                          ,[Game.Alive, Game.Alive, Game.Empty]
-                          ,[Game.Empty, Game.Empty, Game.Empty]]
+                  after = [(Location 1 0)
+                          ,(Location 1 1)
+                          ]
 
                 in
-                  (assertEqual (update Game.Tick before) after)
+                  (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
                )
 --         , test "view should render game states as divs"
 --           (
@@ -115,46 +125,43 @@ tests =
 --           )
         , test "initModel can init a 3x3 celled world"
                (
-                let
-                  expectedWorld = [[Game.Empty, Game.Empty, Game.Empty]
-                                  ,[Game.Empty, Game.Empty, Game.Empty]
-                                  ,[Game.Empty, Game.Empty, Game.Empty]]
-                in
-                  (assertEqual (emptyWorld 3) expectedWorld)
+                  assertEqual (emptyWorld 3) (Model [] 3)
                )
          , test "numberOfNeigbours with 1 neigbour"
                 (
                  let
-                   world = [[Game.Empty, Game.Empty, Game.Alive]
-                           ,[Game.Empty, Game.Empty, Game.Empty]
-                           ,[Game.Empty, Game.Empty, Game.Empty]]
+                   aliveCells = [(Location 2 0)]
                  in
-                   (assertEqual (numberOfNeigbours world loc1p1) 1)
+                   (assertEqual 1 (numberOfNeigbours aliveCells loc1p1))
                 )
          , test "numberOfNeigbours with 2 neigbours"
                 (
                  let
-                   world = [[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Empty, Game.Empty, Game.Alive]
-                           ,[Game.Empty, Game.Empty, Game.Empty]]
+                   world = [(Location 1 0), (Location 2 1)]
                  in
                    (assertEqual (numberOfNeigbours world loc1p1) 2)
                 )
          , test "numberOfNeigbours with 5 neigbours"
                 (
                  let
-                   world = [[Game.Alive, Game.Alive, Game.Alive]
-                           ,[Game.Empty, Game.Empty, Game.Empty]
-                           ,[Game.Alive, Game.Empty, Game.Alive]]
+                   world = [(Location 0 0)
+                           ,(Location 0 2)
+                           ,(Location 1 0) --  x-x
+                           ,(Location 2 0) --  x*-
+                           ,(Location 2 2) --  x-x
+                           ]
                  in
                    (assertEqual (numberOfNeigbours world loc1p1) 5)
                 )
          , test "numberOfNeigbours with 1 neigbours other location"
                 (
                  let
-                   world = [[Game.Alive, Game.Alive, Game.Alive]
-                           ,[Game.Empty, Game.Empty, Game.Empty]
-                           ,[Game.Alive, Game.Empty, Game.Alive]]
+                   world = [(Location 0 0)
+                           ,(Location 0 1)
+                           ,(Location 0 2)
+                           ,(Location 2 0)
+                           ,(Location 2 2)
+                           ]
                  in
                    (assertEqual 1 (numberOfNeigbours world (Location 0 0)))
                 )
@@ -162,9 +169,9 @@ tests =
          , test "numberOfNeigbours dosen't take own cell into account"
                 (
                  let
-                   world = [[Game.Empty, Game.Empty, Game.Empty]
-                           ,[Game.Empty, Game.Alive, Game.Empty]
-                           ,[Game.Empty, Game.Empty, Game.Alive]]
+                   world = [(Location 1 1)
+                           ,(Location 2 2)
+                           ]
                  in
                    (assertEqual (numberOfNeigbours world loc1p1) 1)
                 )
@@ -182,6 +189,10 @@ tests =
                  in
                    (assertEqual after (indexMap2Location (\loc val -> (loc, val)) before))
                 )
+         -- , test "groupByOccurenceOfExactly"
+         --        (
+         --         (assertEqual [2] (groupByOccurenceOfExactly 3 [1, 2, 3, 2, 3, 2]))
+         --        )
                   
 
         ]

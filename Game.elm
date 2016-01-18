@@ -3,24 +3,23 @@ module Game where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Time
+import List.Extra exposing (group)
 
 type Cell = Alive | Empty
-type alias World = List (List Cell)
-type alias Model = World
-
 type alias Location = { row : Int
                       , col : Int
                       }
-
+type alias Model = { alive: AliveCells
+                   , size: Int
+                   }
+type alias AliveCells = List Location
+                 
 type Action = Tick
             
 initModel : Int -> Model
-initModel size =
-  [Empty]
-  |> List.repeat size
-  |> List.concat
-  |> List.repeat size
-
+initModel size = {alive = []
+                 ,size = size
+                 }
 
 indexMap2Location : (Location -> a -> b) -> List (List a) -> List (List b)
 indexMap2Location func list2 =
@@ -32,39 +31,52 @@ indexMap2Location func list2 =
                                            )
                   )
 
-numberOfNeigbours : World -> Location -> Int
-numberOfNeigbours world location = 
-  let
-    isNeigbour ownLocation cellLocation cell =
-      if (cellLocation.col >= ownLocation.col - 1) &&
-         (cellLocation.col <= ownLocation.col + 1) &&
-         (cellLocation.row >= ownLocation.row - 1) &&
-         (cellLocation.row <= ownLocation.row + 1) &&
-         (cell == Alive) &&
-         (ownLocation /= cellLocation) then
-        1
-      else
-        0
-  in
-      world
-      |> indexMap2Location (isNeigbour location)
-      |> List.concat
-      |> List.sum
-  
+-- groupByOccurenceOfExactly : Int -> List comparable -> List comparable
+-- groupByOccurenceOfExactly minSize list =
+--   list
+-- --  |> List.sort
+--   |> group
+--   |> List.filter (\value -> ((List.length value) == minSize))
+--   |> List.map (\val -> (List.take 1 val))
+--   |> List.concat
+
+numberOfNeigbours : AliveCells -> Location -> Int
+numberOfNeigbours alive location = 
+  alive
+  |> List.filter (\loc -> (location.row >= loc.row - 1) &&
+                          (location.row <= loc.row + 1) &&
+                          (location.col >= loc.col - 1) &&
+                          (location.col <= loc.col + 1) &&
+                          (location /= loc)
+                 )
+  |> List.map (\_ -> 1)
+  |> List.sum
+
 update : Action -> Model -> Model
 update action model =
   let
-    cellAfterNextTick model neigbours state =
-      if (state == Alive && neigbours > 1 && neigbours < 4) ||
-         (state == Empty && neigbours == 3) then
-        Alive
-      else
-        Empty
+    aliv =
+      List.filter (\loc ->
+                     (numberOfNeigbours model.alive loc) == 2 ||
+                     (numberOfNeigbours model.alive loc) == 3 
+                  ) model.alive
+    reproduced =
+      model.alive
+      |> List.map (\loc ->
+                     [(Location (loc.row-1) (loc.col-1)), 
+                     (Location (loc.row-1) (loc.col)), 
+                     (Location (loc.row-1) (loc.col+1)), 
+                     (Location (loc.row)   (loc.col-1)), 
+                     (Location (loc.row)   (loc.col+1)), 
+                     (Location (loc.row+1) (loc.col-1)), 
+                     (Location (loc.row+1) (loc.col)), 
+                     (Location (loc.row+1) (loc.col+1))]
+                  )
+      |> List.concat
+--      |> groupByOccurenceOfExactly 3
   in
-  model
-  |> indexMap2Location (\loc cell ->
-                          cellAfterNextTick model (numberOfNeigbours model loc) cell
-                       )
+    {alive = aliv, size=model.size}
+
 drawCell : Cell -> Html
 drawCell cell =
   let
@@ -89,10 +101,9 @@ view : Model -> Html
 view model =
   div
   []
-  (model
-   |> indexMap2Location(\_ cell -> drawCell cell)
-   |> List.intersperse ([div[style [("clear", "both")]][]])
-   |> List.concat)
+  (
+   List.repeat model.size (drawCell Empty)
+  )
 
 ticker : Signal Action
 ticker =
@@ -104,17 +115,10 @@ input =
   
 model : Signal Model
 model =
-  Signal.foldp update (initialModel) ticker
+  Signal.foldp update initialModel ticker
 
 initialModel : Model
-initialModel =
-  (initModel 100)
-  |> indexMap2Location (\loc cell ->
-      if(loc.row > 24 && loc.row < 30) &&
-        (loc.col > 24 && loc.col < 30)
-      then Alive
-      else Empty
-    )
+initialModel = {alive= [], size = 100}
   
 main : Signal Html
 main = Signal.map view model
