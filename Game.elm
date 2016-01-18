@@ -114,7 +114,11 @@ view model =
   div
   []
   (
-   List.repeat model.size (drawCell Empty)
+   (drawCell Empty)
+   |> List.repeat model.size
+   |> List.repeat model.size
+   |> List.intersperse ([div[style [("clear", "both")]][]])      
+   |> List.concat
   )
 
 ticker : Signal Action
