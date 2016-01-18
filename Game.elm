@@ -21,16 +21,6 @@ initModel size = {alive = []
                  ,size = size
                  }
 
-indexMap2Location : (Location -> a -> b) -> List (List a) -> List (List b)
-indexMap2Location func list2 =
-  list2
-  |> List.indexedMap (\row subList ->
-                        subList
-                        |> List.indexedMap (\col cell ->
-                                              func {row = row, col = col} cell
-                                           )
-                  )
-
 groupByOccurenceOfExactly : Int -> List Location -> List Location
 groupByOccurenceOfExactly minSize list =
   list
