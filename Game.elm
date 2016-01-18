@@ -31,12 +31,20 @@ indexMap2Location func list2 =
                                            )
                   )
 
-groupByOccurenceOfExactly : Int -> List comparable -> List comparable
+groupByOccurenceOfExactly : Int -> List Location -> List Location
 groupByOccurenceOfExactly minSize list =
   list
-  |> List.sort
+  |> List.sortBy (\loc -> toString loc.row ++ toString loc.col)
   |> group
   |> List.filter (\value -> ((List.length value) == minSize))
+  |> List.map (\val -> (List.take 1 val))
+  |> List.concat
+
+removeDuplicates : List Location -> List Location
+removeDuplicates list =
+  list
+  |> List.sortBy (\loc -> toString loc.row ++ toString loc.col)
+  |> group
   |> List.map (\val -> (List.take 1 val))
   |> List.concat
 
@@ -73,9 +81,13 @@ update action model =
                      (Location (loc.row+1) (loc.col+1))]
                   )
       |> List.concat
---      |> groupByOccurenceOfExactly 3
+      |> groupByOccurenceOfExactly 3
+
+    total =
+      aliv ++ reproduced
+      |> removeDuplicates
   in
-    {alive = aliv, size=model.size}
+    {alive = total, size=model.size}
 
 drawCell : Cell -> Html
 drawCell cell =

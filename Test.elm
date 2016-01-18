@@ -42,14 +42,15 @@ tests =
         , test "One living cell with two neighbours live in next tick"
                (
                 let
-                  before = [(Location 0 1)  -- -x-
-                           ,(Location 1 1)  -- -x-
-                           ,(Location 2 1)  -- --x
+                  before = [(Location 1 0)  -- -1-
+                           ,(Location 1 1)  -- -xx
+                           ,(Location 2 1)  -- ---
                            ]
 
-                  after = [(Location 1 1)   -- ---
-                                            -- -1-
-                                            -- ---
+                  after = [(Location 1 0)   -- -xx
+                          ,(Location 1 1)   -- -xx
+                          ,(Location 2 0)
+                          ,(Location 2 1)
                           ]
                 in
                   (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
@@ -63,11 +64,11 @@ tests =
                            ,(Location 2 1)  -- -x-
                            ]
 
-                  after = [--(Location 0 1)
---                          ,(Location 1 0)   -- ---
-                             (Location 1 1)   -- -x-
-  --                        ,(Location 1 2)   -- ---
-                          ]
+                  after = [(Location 0 1)
+                          ,(Location 1 0)   -- -x-
+                          ,(Location 1 1)   -- xxx
+                          ,(Location 1 2)   -- ---
+                        ]
                 in
                   (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
                )
@@ -92,14 +93,14 @@ tests =
         , test "A dead cell with exactly three live neighbours becomes a live cell, as by reproduction"
                (
                 let
-                  before = [(Location 0 0)
-                           ,(Location 1 1)
-                           ,(Location 2 0)
+                  before = [(Location 0 0) -- x--
+                           ,(Location 1 1) -- -x-
+                           ,(Location 2 0) -- x--
                            ]
                   
-                  after = [(Location 1 0)
-                          ,(Location 1 1)
-                          ]
+                  after = [(Location 1 0) --  ---
+                          ,(Location 1 1) --  xx-
+                          ]                   ---
 
                 in
                   (assertEqual (update Game.Tick (Model before 3)) (Model after 3))
@@ -191,7 +192,13 @@ tests =
                 )
          , test "groupByOccurenceOfExactly"
                 (
-                 (assertEqual [2] (groupByOccurenceOfExactly 3 [1, 2, 3, 2, 3, 2]))
+                 let
+                   loc1 = Location 1 1
+                   loc2 = Location 2 2
+                   loc3 = Location 3 3
+                                 
+                 in
+                 (assertEqual [loc2] (groupByOccurenceOfExactly 3 [loc1, loc2, loc3, loc2, loc3, loc2]))
                 )
                   
 
