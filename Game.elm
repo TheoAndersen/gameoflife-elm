@@ -132,7 +132,7 @@ view model =
 
 ticker : Signal Action
 ticker =
-  Signal.map (always Tick) (Time.fps 60)
+  Signal.map (always Tick) (Time.fps 4)
 
 input : Signal Action
 input =
@@ -143,7 +143,20 @@ model =
   Signal.foldp update initialModel ticker
 
 initialModel : Model
-initialModel = {alive= [(Location 10 10), (Location 11 11), (Location 10 11)], size = 70}
+initialModel = {alive= [(Location 10 10)
+                       ,(Location 11 11)
+                       ,(Location 10 12)
+                       ,(Location 10 13)
+                       ,(Location 9 13)
+                       ,(Location 20 20)
+                       ,(Location 19 20)
+                       ,(Location 19 21)
+                       ,(Location 19 22)
+                       ,(Location 30 30)
+                       ,(Location 29 30)
+                       ,(Location 31 30)
+                       ,(Location 30 29)
+                       ,(Location 30 31)], size = 70}
   
 main : Signal Html
 main = Signal.map view model
